@@ -29,8 +29,12 @@ iface {{ item.device }} {{ item.family | default('inet', true) }} {{ item.method
 
   # additional subnets
 {%   for subnet in item.subnets %}
-  up /sbin/ip addr add {{ subnet }} dev {{ item.device }}
-  down /sbin/ip addr del {{ subnet }} dev {{ item.device }}
+  up /sbin/ip route add {{ subnet.net }} via {{ subnet.gw }}
+  up /sbin/ip route add {{ subnet.net }} via {{ subnet.gw }} table {{ subnet.name }}
+  up /sbin/ip rule add from {{ subnet.net }} table {{ subnet.name }}
+  down /sbin/ip route del {{ subnet.net }} via {{ subnet.gw }}
+  down /sbin/ip route del {{ subnet.net }} via {{ subnet.gw }} table {{ subnet.name }}
+  down /sbin/ip rule del from {{ subnet.net }} table {{ subnet.name }}
 {%   endfor %}
 {% endif %}
 

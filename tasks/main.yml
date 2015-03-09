@@ -5,6 +5,13 @@
     state: directory
   when: network_interfaces
 
+- name: create /etc/iproute2/rt_tables
+  lineinfile:
+    dest=/etc/iproute2/rt_tables
+    regexp='{{item.id}} {{item.name}}'
+    line='{{item.id}} {{item.name}}' state=present
+  with_items: network_tables
+
 - name: all interfaces
   template:
     src: all_interfaces.j2
@@ -48,8 +55,5 @@
     state: restarted
     arguments: "INTERFACE={{ item.0 }}"
   when: >
-    (0 != item.1 | selectattr('changed') | list | length)
-    and ((0 != item.1 | selectattr('item.auto', 'undefined') | list | length)
-      or (true in item.1 | selectattr('item.auto') | list)
-    )
+   (0 != item.1 | selectattr('changed') | list | length)
   with_items: network_configuration_result.results | default([]) | groupby('item.device')
